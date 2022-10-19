@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:tmdb_game/screens/winScreen.dart';
 import 'screens/quiz.dart';
 import 'screens/endScreen.dart';
 import 'screens/mainmenu.dart';
+import 'screens/winScreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,8 +44,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       routes: {
         'mainMenu': (ctx) => mainMenu(),
         'quiz': (ctx) => quiz(),
-        'endScreen': (ctx) => endScreen()
-
+        'endScreen': (ctx) => endScreen(),
+        'winScreen' : (ctx) => winScreen()
       },
     );
   }

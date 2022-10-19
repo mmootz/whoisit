@@ -28,7 +28,7 @@ class Actors{
     return names;
   }
   pickRandom(List randomList, int picks) {
-    final random = new Random();
+    final random = Random();
     List pickedList = [];
     for (int i = 0; i < picks; i++) {
       String Pick = randomList[random.nextInt(randomList.length)];

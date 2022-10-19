@@ -64,6 +64,7 @@ class _mainMenuState extends State<mainMenu> {
   Future<void> startGame(context) async {
     //readJson();
      actorMap = await fetchActors(1);
+     //debugPrint(actorMap.toString());
      pickedActors = pickActors(actorMap,10);
      actorNames  = Names(actorMap);
     Navigator.pop(context);
