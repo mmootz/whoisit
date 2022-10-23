@@ -45,6 +45,6 @@ class _confettiBlastState extends State<confettiBlast> {
           Colors.green,
           Colors.yellow
         ],
-      ),); 
+      ),);
   }
 }
