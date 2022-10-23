@@ -2,13 +2,13 @@
 // unlocks guess movie
 
 import 'package:flutter/material.dart';
-import 'package:tmdb_game/models/endround.dart';
 import 'package:tmdb_game/screens/quiz.dart';
 import 'package:tmdb_game/widgets/gameover.dart';
 import 'package:tmdb_game/models/quizPass.dart';
 import '../models/actors.dart';
 import '../widgets/fetch_tmdb.dart';
 import 'package:tmdb_game/models/newRound.dart';
+import 'package:tmdb_game/widgets/confetti.dart';
 
 class endScreen extends StatefulWidget {
   //const endScreen({Key? key}) : super(key: key);
@@ -26,6 +26,11 @@ class _endScreenState extends State<endScreen> {
   //final score = 15;
   final int bonus = 25;
 
+  
+  //confetti
+  
+  
+
   //int newScore = 0;
   @override
   void didChangeDependencies() {}
@@ -40,6 +45,7 @@ class _endScreenState extends State<endScreen> {
 
     return actors["results"];
   }
+  
 
   Future<void> nextSet(context, int page, int nxtScore, int nxtRound) async {
     int round;
@@ -72,6 +78,7 @@ class _endScreenState extends State<endScreen> {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments as quizPass;
     //args.perfect ? newScore = args.score + bonus : newScore = 0;
+    
     return Scaffold(
       appBar: AppBar(
         title: Text('Who is it?'),
@@ -89,6 +96,7 @@ class _endScreenState extends State<endScreen> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
                 ),
           args.perfect ? Text('Perfect Round +$bonus') : Container(),
+          confettiBlast(args.perfect),
           Text(args.score.toString(), style: TextStyle(fontSize: 75)),
           gameOver(args.answers),
           ElevatedButton(

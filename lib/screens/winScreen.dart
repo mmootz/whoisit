@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:tmdb_game/widgets/confetti.dart';
 
-class winScreen extends StatelessWidget {
+class winScreen extends StatefulWidget {
   const winScreen({Key? key}) : super(key: key);
   static const routeName = 'winScreen';
+
+  @override
+  State<winScreen> createState() => _winScreenState();
+}
+
+class _winScreenState extends State<winScreen> {
   // animate this with text widget
   @override
   Widget build(BuildContext context) {
@@ -21,8 +28,10 @@ class winScreen extends StatelessWidget {
             "Final score:$args",
             style: TextStyle(fontSize: 28),
           ),
+        confettiBlast(true)
         ],
-      )),
+          
+          )),
     );
   }
 }

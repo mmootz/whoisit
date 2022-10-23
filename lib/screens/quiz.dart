@@ -3,8 +3,6 @@
 // guess movie
 // endless make this unlocked after completed one.
 
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tmdb_game/models/newRound.dart';
@@ -15,7 +13,6 @@ import 'package:tmdb_game/widgets/Poster.dart';
 import 'dart:convert';
 import '../models/newRound.dart';
 import '../widgets/buttonAnswers.dart';
-import '../widgets/fetch_tmdb.dart';
 import 'package:tmdb_game/models/actors.dart';
 import 'package:tmdb_game/models/quizPass.dart';
 
@@ -39,7 +36,7 @@ class _quizState extends State<quiz> {
   int score = 100;
   int setNumber = 1;
   int bonus = 25;
-  int endGameRound = 10;
+  int lastGameRound = 100;
   int displayRound = 1;
   bool isNotGameOver = true;
   bool perfectRound = true;
@@ -57,12 +54,7 @@ class _quizState extends State<quiz> {
 
   @override
   void didChangeDependencies() {
-    //if (!roundStarted) {
-    //if (!loadedActors) {
     initRound();
-    //newRound();
-    //loadedActors = true;
-    //}
   }
 
   Future<void> readJson() async {
@@ -78,85 +70,6 @@ class _quizState extends State<quiz> {
     newRound();
   }
 
-  Future fetchActors(int page) async {
-    const String apiUrlRoot = "https://api.themoviedb.org/3/person/popular?";
-    const String apiUrlKey = "api_key=e7012f0ede42eedde18f502522c6f94e";
-    const String apiUrlPage = "&language=en-US&page=";
-
-    final actors =
-        await fetchJson(apiUrlRoot + apiUrlKey + apiUrlPage + page.toString());
-    setState(() {
-      _items = actors["results"];
-    });
-  }
-
-  fillerNames(List randomList, int picks, String name) {
-    final random = new Random();
-    List pickedList = [];
-    List shuffled = [];
-    List tempList = new List<String>.from(randomList);
-    tempList.remove(name);
-    pickedList.add(name);
-
-    for (int i = 0; i < picks; i++) {
-      String Pick = tempList[random.nextInt(tempList.length)];
-      tempList.remove(Pick);
-      pickedList.add(Pick);
-    }
-
-    shuffled = (pickedList..shuffle());
-
-    return shuffled;
-  }
-
-  actorsNames(List json) {
-    List names = [];
-    //Map<dynamic, dynamic> actor = jsonDecode(json);
-    for (int i = 0; i < 19; i++) {
-      names.add(json[i]['name']);
-    }
-    return names;
-  }
-
-  pickRandom(List randomList, int picks) {
-    final random = new Random();
-    List pickedList = [];
-    for (int i = 0; i < picks; i++) {
-      String Pick = randomList[random.nextInt(randomList.length)];
-      randomList.remove(Pick);
-      pickedList.add(Pick);
-    }
-    return pickedList;
-  }
-
-  pickActors(List randomList, int picks) {
-    final List randomNames;
-    List actors = [];
-    Map<dynamic, dynamic> guessActor = {};
-    String actorName = "";
-    String randomActorName = "";
-    actors = actorsNames(randomList);
-    randomNames = pickRandom(actors, picks);
-    randomNames.shuffle();
-    for (int namesIndex = 0; namesIndex < randomList.length; namesIndex++) {
-      for (int shuffleIndex = 0;
-          shuffleIndex < randomNames.length;
-          shuffleIndex++) {
-        actorName = randomList[namesIndex]['name'];
-        randomActorName = randomNames.elementAt(shuffleIndex);
-        if (actorName == randomActorName) {
-          guessActor[shuffleIndex + 1] = {'name': '', 'profile_path': ''};
-          guessActor[shuffleIndex + 1]['name'] = randomList[namesIndex]['name'];
-          guessActor[shuffleIndex + 1]['profile_path'] =
-              randomList[namesIndex]['profile_path'];
-          break;
-        }
-      }
-    }
-    //print(guessActor);
-    return guessActor;
-  }
-
   addBonus() {
     debugPrint('add bonus');
     setState(() {
@@ -165,7 +78,7 @@ class _quizState extends State<quiz> {
   }
 
   newGame() {
-    actorNames = actorsNames(_items);
+    actorNames = Names(_items);
     pickedActor = pickActors(_items, 10);
     //newRound();
   }
@@ -204,90 +117,73 @@ class _quizState extends State<quiz> {
     Navigator.pushNamed(context, winScreen.routeName, arguments: winScore);
   }
 
-  rightAnswer(context) {
-    final args = ModalRoute.of(context)?.settings.arguments as newRoundScreen;
-    int endRound;
-    endRound = 10;
-    int lastRound;
-    lastRound = args.startRound + 9;
+  void showEndRoundScreen(context, int page, int lastRound) {
+    Navigator.pop(context);
+    Navigator.pushNamed(context, endScreen.routeName,
+        arguments: quizPass(
+            score: score,
+            answers: answers,
+            perfect: perfectRound,
+            page: page,
+            endRound: lastRound));
+  }
+
+  void updateAnswers(String actor, bool answer, int nextRound) {
+    setState(() {
+      answers[round - 1] = {'name': actor, 'answer': answer};
+      round = nextRound;
+      displayRound = displayRound + 1;
+    });
+  }
+
+  rightAnswer(context, String selectedActor, int page, int startRound) {
+    // answers and score are used but setstate and not called by the function
+    int endRound = startRound + 9;
+    //int lastRound = startRound + 9;
     int nextRound;
     nextRound = round + 1;
     if (displayRound == endRound) {
-      if (endGameRound == displayRound) {
+      if (lastGameRound == displayRound) {
         Winscreen(context, score);
       } else {
         setState(() {
-          answers[round - 1] = {
-            'name': args.pickedActors[round]['name'],
-            'answer': true
-          };
+          answers[round - 1] = {'name': selectedActor, 'answer': true};
           if (perfectRound) {
             addBonus();
           }
         });
-        Navigator.pop(context);
-        Navigator.pushNamed(context, endScreen.routeName,
-            arguments: quizPass(
-                score: score,
-                answers: answers,
-                perfect: perfectRound,
-                page: args.page,
-                endRound: lastRound));
+        showEndRoundScreen(context, page, endRound);
       }
     } else {
-      setState(() {
-        answers[round - 1] = {
-          'name': args.pickedActors[round]['name'],
-          'answer': true
-        };
-        round = nextRound;
-        displayRound = displayRound + 1;
-      });
-
+      updateAnswers(selectedActor, true, nextRound);
       newRound();
     }
   }
 
-  wrongAnswer(context) {
-    final args = ModalRoute.of(context)?.settings.arguments as newRoundScreen;
+  wrongAnswer(context, String selectorActor, int page, int startRound) {
+    //final args = ModalRoute.of(context)?.settings.arguments as newRoundScreen;
+    // score,round,hit and prefect round are called from outside
     int newScore;
     int nextRound;
     debugPrint('wrong');
     nextRound = round + 1;
     newScore = score - hit;
-    int endRound;
-    endRound = args.startRound + 9;
+    int endRound = startRound + 9;
 
     if (displayRound == endRound || newScore <= 0) {
-      if (endGameRound == displayRound) {
+      if (lastGameRound == displayRound) {
         Winscreen(context, score);
       } else {
-        //debugPrint('game over');
         setState(() {
           if (perfectRound) {
             perfectRound = false;
           }
-          answers[round - 1] = {
-            'name': args.pickedActors[round]['name'],
-            'answer': false
-          };
-          isNotGameOver = false;
         });
-        Navigator.pop(context);
-        Navigator.pushNamed(context, endScreen.routeName,
-            arguments: quizPass(
-                score: newScore,
-                answers: answers,
-                perfect: perfectRound,
-                page: args.page,
-                endRound: endRound));
+        updateAnswers(selectorActor, false, nextRound);
+        showEndRoundScreen(context, page, endRound);
       }
     } else {
       setState(() {
-        answers[round - 1] = {
-          'name': args.pickedActors[round]['name'],
-          'answer': false
-        };
         score = newScore;
         round = nextRound;
         displayRound = displayRound + 1;
@@ -295,6 +191,7 @@ class _quizState extends State<quiz> {
           perfectRound = false;
         }
       });
+      updateAnswers(selectorActor, false, nextRound);
       newRound();
     }
   }
@@ -315,14 +212,15 @@ class _quizState extends State<quiz> {
           args.pickedActors.isNotEmpty
               ? posterCard(profileUrl + actorPicture)
               : Text('no Data'),
-          Text(profileUrl + actorPicture),
           SizedBox(
             height: MediaQuery.of(context).size.height * 0.03,
           ),
           answerButtons(
               guesses: shuffledActors,
-              right: () => rightAnswer(context),
-              wrong: () => wrongAnswer(context),
+              right: () =>
+                  rightAnswer(context, rightActor, args.page, args.startRound),
+              wrong: () =>
+                  wrongAnswer(context, rightActor, args.page, args.startRound),
               picked: rightActor),
           // LinearProgressIndicator(
           //   minHeight: 20,

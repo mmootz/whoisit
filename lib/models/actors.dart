@@ -1,7 +1,6 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
 
 Names(List json) {
   List names = [];
@@ -48,3 +47,21 @@ pickActors(List randomList, int picks) {
   }
   return guessActor;
 }
+fillerNames(List randomList, int picks, String name) {
+    final random = new Random();
+    List pickedList = [];
+    List shuffled = [];
+    List tempList = new List<String>.from(randomList);
+    tempList.remove(name);
+    pickedList.add(name);
+
+    for (int i = 0; i < picks; i++) {
+      String Pick = tempList[random.nextInt(tempList.length)];
+      tempList.remove(Pick);
+      pickedList.add(Pick);
+    }
+
+    shuffled = (pickedList..shuffle());
+
+    return shuffled;
+  }
